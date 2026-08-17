@@ -17,12 +17,15 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  LogOut,
   Truck,
   Users,
   X,
 } from "lucide-react";
 
 import SyncStatus from "@/components/pwa/SyncStatus";
+import AuthGate from "@/components/auth/AuthGate";
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 type AppShellProps = {
   children: ReactNode;
@@ -65,6 +68,11 @@ export default function AppShell({
 }: AppShellProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const signOut = async () => {
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) await supabase.auth.signOut();
+  };
 
   const sidebar = (
     <div className="flex h-full flex-col bg-[#06172f] text-white">
@@ -126,7 +134,15 @@ export default function AppShell({
             <p className="truncate text-sm font-semibold">Rudi Rasool</p>
             <p className="text-xs text-slate-400">Owner · Full access</p>
           </div>
-          <span className="h-2.5 w-2.5 rounded-full border-2 border-[#06172f] bg-emerald-400" />
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="rounded-xl p-2 text-slate-500 transition hover:bg-white/10 hover:text-white"
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
         <p className="mt-3 text-center text-[10px] tracking-wide text-slate-600">
           VE One · Developed by View Enterprise
@@ -136,7 +152,8 @@ export default function AppShell({
   );
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-[#071a33]">
+    <AuthGate>
+      <div className="min-h-screen bg-[#f4f7fb] text-[#071a33]">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[280px] lg:block">
         {sidebar}
       </aside>
@@ -192,7 +209,8 @@ export default function AppShell({
 
         <main className="px-4 py-6 sm:px-6 xl:px-8 xl:py-8">{children}</main>
       </div>
-    </div>
+      </div>
+    </AuthGate>
   );
 }
 
