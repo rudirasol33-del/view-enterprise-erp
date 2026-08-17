@@ -17,7 +17,7 @@ import {
 
 import GlassCard from "@/components/shared/GlassCard";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 type Company = {
   id: string;
@@ -40,6 +40,15 @@ export default function LoginPage() {
     async function getCompanies() {
       setIsLoadingCompanies(true);
       setErrorMessage("");
+
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        setErrorMessage(
+          "VE One is not connected to Supabase in this environment.",
+        );
+        setIsLoadingCompanies(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from("companies")

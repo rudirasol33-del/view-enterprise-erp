@@ -1,23 +1,20 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
-
 import Sidebar from "@/components/sidebar";
 import HeroSection from "@/components/hero-section";
 import DashboardCard from "@/components/dashboard-card";
 import SalesChart from "@/components/sales-chart";
 import ActivityFeed from "@/components/activity-feed";
+import SyncStatus from "@/components/pwa/SyncStatus";
 
+type DashboardPageProps = {
+  searchParams: Promise<{ company?: string | string[] }>;
+};
 
-export default function DashboardPage() {
-
-
-  const params = useSearchParams();
-
-
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const params = await searchParams;
+  const companyParam = params.company;
   const company =
-    params.get("company") || "View Enterprise";
-
+    (Array.isArray(companyParam) ? companyParam[0] : companyParam) ||
+    "View Enterprise";
 
 
   return (
@@ -91,18 +88,21 @@ export default function DashboardPage() {
 
 
 
-          <div
-            className="
-              bg-white
-              rounded-2xl
-              px-5
-              py-3
-              shadow
-              text-[#071A33]
-              font-semibold
-            "
-          >
-            Manager
+          <div className="flex items-center gap-3">
+            <SyncStatus />
+            <div
+              className="
+                bg-white
+                rounded-2xl
+                px-5
+                py-3
+                shadow
+                text-[#071A33]
+                font-semibold
+              "
+            >
+              Owner
+            </div>
           </div>
 
 
