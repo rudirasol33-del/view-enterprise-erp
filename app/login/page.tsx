@@ -28,7 +28,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [company, setCompany] = useState("");
+  const [companyId, setCompanyId] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +67,7 @@ export default function LoginPage() {
       setCompanies(companyList);
 
       if (companyList.length > 0) {
-        setCompany(companyList[0].name);
+        setCompanyId(companyList[0].id);
       }
 
       setIsLoadingCompanies(false);
@@ -76,21 +76,67 @@ export default function LoginPage() {
     getCompanies();
   }, []);
 
-  function handleLogin(event: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
 
-    if (!company) {
+    if (!companyId) {
       setErrorMessage("Please select a company.");
+      return;
+    }
+
+    if (!email.trim() || !password) {
+      setErrorMessage("Enter your email address and password.");
+      return;
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setErrorMessage("VE One is not connected to Supabase.");
       return;
     }
 
     setIsSigningIn(true);
 
-    // Authentication will be connected later.
-    window.setTimeout(() => {
-      router.push(`/dashboard?company=${encodeURIComponent(company)}`);
-    }, 550);
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    if (signInError) {
+      setErrorMessage("The email or password is incorrect.");
+      setIsSigningIn(false);
+      return;
+    }
+
+    const { data: workspaces, error: workspaceError } = await supabase.rpc(
+      "get_my_workspaces",
+    );
+    const selectedWorkspace = workspaces?.find(
+      (workspace) => workspace.company_id === companyId,
+    );
+
+    if (workspaceError || !selectedWorkspace) {
+      await supabase.auth.signOut();
+      setErrorMessage("Your account does not have access to this company.");
+      setIsSigningIn(false);
+      return;
+    }
+
+    window.localStorage.setItem(
+      "ve-one-workspace",
+      JSON.stringify({
+        tenantId: selectedWorkspace.tenant_id,
+        companyId: selectedWorkspace.company_id,
+        companyName: selectedWorkspace.company_name,
+        role: selectedWorkspace.role,
+      }),
+    );
+
+    router.push(
+      `/dashboard?company=${encodeURIComponent(selectedWorkspace.company_name)}`,
+    );
+    router.refresh();
   }
 
   return (
@@ -249,9 +295,9 @@ export default function LoginPage() {
 
                       <select
                         id="company"
-                        value={company}
+                        value={companyId}
                         disabled={isLoadingCompanies}
-                        onChange={(event) => setCompany(event.target.value)}
+                        onChange={(event) => setCompanyId(event.target.value)}
                         className="
                           h-13 w-full appearance-none rounded-2xl
                           border border-white/10 bg-white/[0.07]
@@ -272,7 +318,7 @@ export default function LoginPage() {
                           companies.map((item) => (
                             <option
                               key={item.id}
-                              value={item.name}
+                              value={item.id}
                               className="bg-[#0b2345]"
                             >
                               {item.name}

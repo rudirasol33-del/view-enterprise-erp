@@ -37,7 +37,18 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      get_my_workspaces: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          tenant_id: string;
+          company_id: string;
+          company_name: string;
+          role: string;
+          is_default: boolean;
+        }[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
