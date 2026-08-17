@@ -4,6 +4,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "Stolzl";
+  src: url("/Stolzl.ttf.otf") format("opentype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 900;
+}
+
 :root {
 
   --ve-navy: #071A33;
@@ -91,12 +99,7 @@
 }
 
 body {
-
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
-
+  font-family: "Stolzl", Arial, Helvetica, sans-serif;
 }
 
 .dark {
